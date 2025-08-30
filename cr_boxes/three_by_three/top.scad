@@ -25,9 +25,10 @@ difference() {
     left_screw_hole=true,
     bottom_screw_hole=true,
     right_screw_hole=true,
-    long_wall="top"
+    long_wall="top",
+    fan_hole=false
   );
-  translate([0,get_length() - 32.5, filter_z - grid_z]) {
+  translate([0,get_length() - 37 - 5.1, (grid_z + filter_z)/2]) {
     rotate([90,0,0]) {
       rotate([0,90,0]) {
         handle(screws_only=true);
