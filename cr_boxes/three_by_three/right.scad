@@ -24,5 +24,6 @@ fan_container(
   left_screw_hole=true,
   bottom_screw_hole=true,
   right_screw_hole=false,
-  long_wall="right"
+  long_wall="right",
+  fan_hole=false
 );
