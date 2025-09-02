@@ -237,7 +237,11 @@ module fan_container(
   northwest_foot=false,
   southwest_foot=false,
   cone_top_radius=10,
-  fan_hole=true
+  fan_hole=true,
+  left_wire_route_hole=false,
+  right_wire_route_hole=false,
+  top_wire_route_hole=false,
+  bottom_wire_route_hole=false,
 
 ) {
   height = 10;
@@ -349,7 +353,25 @@ module fan_container(
       if (southwest_foot) {
         southwest_foot(filter_x=filter_x, filter_y=filter_y, z=filter_z, cone_top_radius=cone_top_radius, screw=true, height=height);
       }
+      // LEFT wire route (drills along X at the left wall)
+      if (left_wire_route_hole) {
+        left_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth);
+      }
 
+      // RIGHT wire route (drills along X at the right wall)
+      if (right_wire_route_hole) {
+        right_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth);
+      }
+
+      // TOP wire route (drills along Y at the top wall)
+      if (top_wire_route_hole) {
+        top_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth);
+      }
+
+      // BOTTOM wire route (drills along Y at the bottom wall)
+      if (bottom_wire_route_hole) {
+        bottom_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth);
+      }
     }
   }
 
@@ -394,6 +416,53 @@ module left_screw_and_nut(length, width, grid_z, threaded_height, filter_x, filt
     rotate([0, 90, 0])
       color([0, 0, 1])
       screw_with_nut(threaded_height=threaded_height);
+  }
+}
+
+module left_wire_route_cutout(length = length, width = width, filter_z = filter_z + 5, depth=depth) {
+  z_offset = filter_z;
+  x_offset = -width / 2;
+  y_offset = length / 4;
+
+  translate([x_offset, y_offset, z_offset]) {
+    rotate([0, 90, 0])
+      cylinder(d=wire_route_dia, h=depth * 4, center=true, $fn=64);
+  }
+}
+
+// Right side wire routing hole (mirrors the left)
+module right_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth) {
+  z_offset = filter_z;
+  x_offset = width / 2;      // right inside wall
+  y_offset = length / 4;     // keep same Y offset
+
+  translate([x_offset, y_offset, z_offset]) {
+    rotate([0, 90, 0])
+      cylinder(d=wire_route_dia, h=depth * 4, center=true, $fn=64);
+  }
+}
+
+// Top wire routing hole (centered in X, inset from top wall)
+module top_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth) {
+  z_offset = filter_z;
+  x_offset = width / 4;      // shift along X (quarter across the panel)
+  y_offset = length / 2;     // top inside wall
+
+  translate([x_offset, y_offset, z_offset]) {
+    rotate([-90, 0, 0])      // cylinder axis along Y
+      cylinder(d=wire_route_dia, h=depth * 4, center=true, $fn=64);
+  }
+}
+
+// Bottom wire routing hole
+module bottom_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth) {
+  z_offset = filter_z;
+  x_offset = width / 4;      // same X offset
+  y_offset = -length / 2;    // bottom inside wall
+
+  translate([x_offset, y_offset, z_offset]) {
+    rotate([-90, 0, 0])      // cylinder axis along Y
+      cylinder(d=wire_route_dia, h=depth * 4, center=true, $fn=64);
   }
 }
 

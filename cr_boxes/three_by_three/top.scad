@@ -28,6 +28,10 @@ difference() {
     left_screw_hole=true,
     bottom_screw_hole=true,
     right_screw_hole=true,
+    left_wire_route_hole=true,
+    right_wire_route_hole=true,
+    top_wire_route_hole=false,
+    bottom_wire_route_hole=true,
     long_wall="top",
     fan_hole=false
   );
@@ -37,12 +41,12 @@ difference() {
         handle(screws_only=true);
       }
     }
-  }
+  };
   // barrel plug hole
   translate([0, get_length()/2, (grid_z + filter_z)/2]) {
       rotate([90,0,0]) {
           cylinder(d=barrel_plug_dia, h=thickness*10, $fn=64, center=true); // add +2 so it cuts through
       }
-  }
+  };
 }
 
