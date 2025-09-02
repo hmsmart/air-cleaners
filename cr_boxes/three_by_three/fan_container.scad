@@ -7,17 +7,21 @@ use <../../laminair/foot.scad>
 // Lennox Model HCF14-13
 // Replaces Filter Parn No. 19L14
 
-grid_z = 1 * 25.4;
+grid_z =  32;
 depth = 5;
 num_fan_rows = 3;
 num_fan_cols = 3;
-filter_x = 508;
-filter_y = 501.65;
-filter_z = 20.125;
+barrel_plug_dia = 10.86;
+wire_route_dia = 3.06;
+filter_x = 506.22;
+filter_y = 506.22;
+filter_z = 25.4;
 fan_diameter = 140;
 
 function get_length(fy=filter_y, d=depth, n=num_fan_cols) = (d * 2 + fy) / n;
 function get_width(fx=filter_x, d=depth, n=num_fan_rows) = (d * 2 + fx) / n;
+function get_barrel_plug() = barrel_plug_dia;
+function get_depth() = depth;
 
 function get_x_spacing(width, fan_diameter) = (width - fan_diameter) / 2;
 function get_y_spacing(length, fan_diameter) = (length - fan_diameter) / 2;

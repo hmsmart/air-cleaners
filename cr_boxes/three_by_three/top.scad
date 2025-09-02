@@ -3,6 +3,9 @@ use <../handle.scad>
 
 filter_z = get_filter_dim()[2];
 grid_z = get_grid_z();
+barrel_plug_dia = get_barrel_plug();
+thickness = get_depth();
+
 
 
 difference() {
@@ -35,6 +38,11 @@ difference() {
       }
     }
   }
-
+  // barrel plug hole
+  translate([0, get_length()/2, (grid_z + filter_z)/2]) {
+      rotate([90,0,0]) {
+          cylinder(d=barrel_plug_dia, h=thickness*10, $fn=64, center=true); // add +2 so it cuts through
+      }
+  }
 }
 
