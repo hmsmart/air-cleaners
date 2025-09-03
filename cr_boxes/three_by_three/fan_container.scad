@@ -17,6 +17,11 @@ filter_x = 506.22;
 filter_y = 506.22;
 filter_z = 25.4;
 fan_diameter = 140;
+//Text Writing
+deboss_depth = 1;         
+deboss_font  = "Berkeley Mono:style=Bold";
+deboss_stroke = 0.18;      
+deboss_eps = 0.05;        
 
 function get_length(fy=filter_y, d=depth, n=num_fan_cols) = (d * 2 + fy) / n;
 function get_width(fx=filter_x, d=depth, n=num_fan_rows) = (d * 2 + fx) / n;
@@ -241,8 +246,7 @@ module fan_container(
   left_wire_route_hole=false,
   right_wire_route_hole=false,
   top_wire_route_hole=false,
-  bottom_wire_route_hole=false,
-
+  bottom_wire_route_hole=false
 ) {
   height = 10;
   side = 35 * 2 + 10;
@@ -353,22 +357,15 @@ module fan_container(
       if (southwest_foot) {
         southwest_foot(filter_x=filter_x, filter_y=filter_y, z=filter_z, cone_top_radius=cone_top_radius, screw=true, height=height);
       }
-      // LEFT wire route (drills along X at the left wall)
       if (left_wire_route_hole) {
         left_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth);
       }
-
-      // RIGHT wire route (drills along X at the right wall)
       if (right_wire_route_hole) {
         right_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth);
       }
-
-      // TOP wire route (drills along Y at the top wall)
       if (top_wire_route_hole) {
         top_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth);
       }
-
-      // BOTTOM wire route (drills along Y at the bottom wall)
       if (bottom_wire_route_hole) {
         bottom_wire_route_cutout(length=length, width=width, filter_z=filter_z + 5, depth=depth);
       }
@@ -510,7 +507,52 @@ module northwest_foot(filter_x, filter_y, z=0, height=10, cone_top_radius=8, scr
   }
 }
 
+// Deboss text into the interior floor at Z = bottom_z (use 0 for your floor).
+// We mirror in X to make text read correctly when viewed from inside the box.
+module deboss_text_on_bottom(
+  label, pos=[0,0], bottom_z=0, size=10,
+  angle=0,                 // keep 0; use 180 only if you want upside-down
+  fix_mirror=true,         // set false if you *don’t* want the horizontal un-mirror
+  halign="center", valign="center"
+){
+  translate([pos[0], pos[1], bottom_z - deboss_depth + deboss_eps])
+    linear_extrude(height=deboss_depth)
+      offset(r=deboss_stroke)
+        rotate([0,0,angle]) {
+          if (fix_mirror)
+            mirror([1,0,0]) text(label, size=size, font=deboss_font, halign=halign, valign=valign);
+          else
+            text(label, size=size, font=deboss_font, halign=halign, valign=valign);
+        }
+}
+module bottom_labels(
+  width, length, bottom_z,
+  part_code="TL",
+  top_T_size=10,
+  part_size=10,
+  edge_margin=6,
+  flip_axis="x"         
+){
+  // "T" near TOP-RIGHT corner, inset by edge_margin on both axes
+  deboss_text_on_bottom(
+    label="↑",
+    pos=[ -width/2 + edge_margin,  length/2 - edge_margin ],
+    bottom_z=bottom_z,
+    size=top_T_size,
+    flip_axis=flip_axis,
+    halign="right", valign="top"
+  );
 
+  // part code near BOTTOM-LEFT corner, inset by edge_margin on both axes
+  deboss_text_on_bottom(
+    label=part_code,
+    pos=[ width/2 - edge_margin, -length/2 + edge_margin ],
+    bottom_z=bottom_z,
+    size=part_size,
+    flip_axis=flip_axis,
+    halign="left", valign="bottom"
+  );
+}
 
 fan_container(
   filter_z=filter_z,

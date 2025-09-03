@@ -33,7 +33,7 @@ difference() {
     top_wire_route_hole=false,
     bottom_wire_route_hole=true,
     long_wall="top",
-    fan_hole=false
+    fan_hole=true
   );
   translate([0,get_length() - 37 - 5.1, (grid_z + filter_z)/2]) {
     rotate([90,0,0]) {
@@ -45,8 +45,18 @@ difference() {
   // barrel plug hole
   translate([0, get_length()/2, (grid_z + filter_z)/2]) {
       rotate([90,0,0]) {
-          cylinder(d=barrel_plug_dia, h=thickness*10, $fn=64, center=true); // add +2 so it cuts through
+          cylinder(d=barrel_plug_dia, h=thickness*10, $fn=64, center=true);
       }
   };
+  //Deboss part
+  bottom_labels(
+    width=get_width(),
+    length=get_length(),
+    bottom_z=filter_z+grid_z-get_depth()+.8,
+    part_code="TC",
+    top_T_size=10,
+    part_size=10,
+    edge_margin=get_depth()*1.5
+  );
 }
 
