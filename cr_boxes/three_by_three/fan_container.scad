@@ -70,8 +70,8 @@ module ledge_tab(edge, at, inner_w, inner_l, depth, grid_z,
   len = tab_len;
   out = tab_out;
   t   = tab_thick;
-  z0  = grid_z - t;       // bottom of the tab
-
+  z0  = grid_z;      // bottom of the tab
+  echo("Tab top:", z0, "Tab thickness:", t);
   if (edge == "top" || edge == "bottom") {
     // Along-X edge; inward is -Y for top, +Y for bottom.
     y_wall   = (edge=="top") ? (yT - kiss) : (yB + kiss);
@@ -126,7 +126,7 @@ module ledge_tab(edge, at, inner_w, inner_l, depth, grid_z,
 // Place N tabs evenly along an edge, keeping a margin from both ends.
 // Uses your existing `ledge_tab(...)` unchanged.
 module place_tabs(edge, inner_w, inner_l, depth, grid_z,
-                  count=4, end_margin=0, tab_len=35, tab_out=22, tab_thick=22/4) {
+                  count=4, end_margin=0, tab_len=35, tab_out=22, tab_thick=22/6) {
   span = (edge=="top"||edge=="bottom") ? inner_w : inner_l;
 
   // available run for *centers*, measured from the negative corner
