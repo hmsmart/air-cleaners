@@ -7,14 +7,14 @@ use <../../laminair/foot.scad>
 // Lennox Model HCF14-13
 // Replaces Filter Parn No. 19L14
 
-grid_z =  32;
+grid_z =  48;
 depth = 5;
 num_fan_rows = 3;
 num_fan_cols = 3;
-barrel_plug_dia = 10.86;
-wire_route_dia = 3.06;
-filter_x = 506.22;
-filter_y = 506.22;
+barrel_plug_dia = 10.96;
+wire_route_dia = 6.942;
+filter_x = 502;
+filter_y = 502;
 filter_z = 25.4;
 fan_diameter = 140;
 //Text Writing
@@ -50,12 +50,95 @@ module wall_remover(long_wall, width, length, filter_z, z) {
   y_offset = long_wall == "top-left" || long_wall == "top" || long_wall == "top-right" ? -depth : (long_wall == "bottom-left" || long_wall == "bottom" || long_wall == "bottom-right" ? depth : 0);
 
 
-  translate([x_offset,y_offset,filter_z/2]) {
-    cube([width, length,filter_z], center=true);
+  translate([x_offset,y_offset,(filter_z+grid_z-depth)/2]) {
+    cube([width, length,filter_z+grid_z-depth], center=true);
   }
-
-
 }
+
+// --- helpers ---
+function clamp(v, lo, hi) = max(lo, min(hi, v));
+
+// Triangular ramp tab that prints support-free (≤45° if tab_out ≥ tab_thick)
+// edge: "top" | "bottom" | "left" | "right"
+// at:   distance along that edge from its negative corner (mm)
+module ledge_tab(edge, at, inner_w, inner_l, depth, grid_z,
+                 tab_len=10, tab_out=depth, tab_thick=1.2, kiss=0.01) {
+
+  xL = -inner_w/2; xR =  inner_w/2;
+  yB = -inner_l/2; yT =  inner_l/2;
+
+  len = tab_len;
+  out = tab_out;
+  t   = tab_thick;
+  z0  = grid_z - t;       // bottom of the tab
+
+  if (edge == "top" || edge == "bottom") {
+    // Along-X edge; inward is -Y for top, +Y for bottom.
+    y_wall   = (edge=="top") ? (yT - kiss) : (yB + kiss);
+    s_inward = (edge=="top") ? -1 : +1;
+    xC       = clamp(xL + at, xL + len/2, xR - len/2);
+
+    // 6 points of a triangular prism (two triangles + faces)
+    points = [
+      [xC - len/2, y_wall,              z0],       // 0  A-
+      [xC - len/2, y_wall,              z0 + t],   // 1  B-
+      [ xC - len/2, y_wall + s_inward*out, z0 ],      // 2  C-
+      [xC + len/2, y_wall,              z0],       // 3  A+
+      [xC + len/2, y_wall,              z0 + t],   // 4  B+
+      [ xC + len/2, y_wall + s_inward*out, z0 ]       // 5  C+
+    ];
+
+    faces = [
+      [0,1,2],        // end triangle
+      [3,5,4],        // other end triangle
+      [0,3,4,1],      // flat face touching wall
+      [1,4,5,2],      // flat top (shelf)
+      [2,5,3,0]       // sloped underside (ramp inward)
+    ];
+    polyhedron(points, faces);
+
+  } else if (edge == "left" || edge == "right") {
+    // Along-Y edge; inward is +X for left, -X for right.
+    x_wall   = (edge=="left") ? (xL + kiss) : (xR - kiss);
+    s_inward = (edge=="left") ? +1 : -1;
+    yC       = clamp(yB + at, yB + len/2, yT - len/2);
+
+    points = [
+      [x_wall,              yC - len/2, z0],        // 0  A-
+      [x_wall,              yC - len/2, z0 + t],    // 1  B-
+      [ x_wall + s_inward*out, yC - len/2, z0 ],
+      [x_wall,              yC + len/2, z0],        // 3  A+
+      [x_wall,              yC + len/2, z0 + t],    // 4  B+
+      [ x_wall + s_inward*out, yC + len/2, z0 ] 
+    ];
+
+    faces = [
+      [0,2,1],        // end triangle
+      [3,4,5],        // other end triangle
+      [0,1,4,3],      // flat face touching wall
+      [1,2,5,4],      // flat top (shelf)
+      [2,0,3,5]       // sloped underside (ramp inward)
+    ];
+    polyhedron(points, faces);
+  }
+}
+
+// Place N tabs evenly along an edge, keeping a margin from both ends.
+// Uses your existing `ledge_tab(...)` unchanged.
+module place_tabs(edge, inner_w, inner_l, depth, grid_z,
+                  count=4, end_margin=0, tab_len=35, tab_out=22, tab_thick=22/4) {
+  span = (edge=="top"||edge=="bottom") ? inner_w : inner_l;
+
+  // available run for *centers*, measured from the negative corner
+  start_at = end_margin + tab_len/2;
+  end_at   = span - end_margin - tab_len/2;
+
+  for (i=[0:count-1]) {
+    at = start_at + (end_at - start_at) * (i + 0.5) / count;  // distance from negative corner
+    ledge_tab(edge, at, inner_w, inner_l, depth, grid_z, tab_len, tab_out, tab_thick);
+  }
+}
+
 
 module top_left_zip_tie_hole(z_offset, depth, fan_size) {
   translate([fan_size / 2 - 2 * depth, fan_size / 2 - depth, z_offset + 5]) {
@@ -316,7 +399,7 @@ module fan_container(
       }
 
       if (top_screw_hole) {
-        top_screw_and_nut(length=length, filter_z=filter_z + 5);
+        edge_nub_cube(edge="top");
       }
 
       if (bottom_screw_hole) {
@@ -474,6 +557,58 @@ module right_screw_and_nut(length, width, grid_z, threaded_height, filter_x, fil
         filter_z=filter_z,
         depth=depth
     );
+  }
+}
+
+module edge_nub_cube(edge="top", at=0,          // offset along that edge from CENTER (mm)
+                     nub_len=20, nub_proj=8,    // along-edge, inward projection
+                     nub_h=10, kiss=0.01) {     // nub height
+
+  // center the nub at the very bottom and grow up nub_h
+  zc = (filter_z + grid_z) - nub_h;
+
+  if (edge == "top") {
+    translate([ at,  (length/2 - kiss) - nub_proj/2, zc ])
+      cube([nub_len, nub_proj, nub_h], center=true);
+  } else if (edge == "bottom") {
+    translate([ at, -(length/2 - kiss) + nub_proj/2, zc ])
+      cube([nub_len, nub_proj, nub_h], center=true);
+  } else if (edge == "right") {
+    translate([ (width/2 - kiss) - nub_proj/2,  at,  zc ])
+      cube([nub_proj, nub_len, nub_h], center=true);
+  } else if (edge == "left") {
+    translate([-(width/2 - kiss) + nub_proj/2,  at,  zc ])
+      cube([nub_proj, nub_len, nub_h], center=true);
+  }
+}
+
+module edge_screw_cut(edge="top", at=0, z_drill, kiss=.1, nub_proj=8) {
+
+  if (edge == "top") {
+    // inward = -Y ; NUT inward: map +Z -> -Y  (Rx +90)
+    translate([ at,  (length/2 + nub_proj + (kiss * 9)),  z_drill ])
+      rotate([ 90, 0, 0 ])
+        screw_with_nut(threaded_height=threaded_height);
+
+  } else if (edge == "bottom") {
+    // inward = +Y ; HEAD inward: map -Z -> +Y
+    // do Ry 180° to flip Z, then Rx -90° to align to +Y
+    translate([ at, -(length/2 -nub_proj - kiss),  z_drill ])
+      rotate([-90, 0, 0]) rotate([0,180,0])   // (apply rightmost first)
+        screw_with_nut(threaded_height=threaded_height);
+
+  } else if (edge == "left") {
+    // inward = +X ; NUT inward: map +Z -> +X  (Ry +90)
+    translate([-(width/2 - nub_proj - kiss),  at,  z_drill ])
+      rotate([ 0, 90, 0 ]) rotate([0,180,0])
+        screw_with_nut(threaded_height=threaded_height);
+
+  } else if (edge == "right") {
+    // inward = -X ; HEAD inward: map -Z -> -X
+    // flip Z with Ry 180°, then align +Z->-X with Ry -90°
+    translate([ (width/2 + nub_proj + (kiss * 9)),  at,  z_drill ])
+      rotate([0,-90,0])     // (apply rightmost first)
+        screw_with_nut(threaded_height=threaded_height);
   }
 }
 

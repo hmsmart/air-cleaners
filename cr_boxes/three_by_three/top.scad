@@ -33,7 +33,7 @@ difference() {
     top_wire_route_hole=false,
     bottom_wire_route_hole=true,
     long_wall="top",
-    fan_hole=true
+    fan_hole=false
   );
   translate([0,get_length() - 37 - 5.1, (grid_z + filter_z)/2]) {
     rotate([90,0,0]) {

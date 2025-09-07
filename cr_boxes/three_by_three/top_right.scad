@@ -1,28 +1,54 @@
 use <fan_container.scad>
-use <../handle.scad>
-
 filter_z = get_filter_dim()[2];
 grid_z = get_grid_z();
 
+difference(){
+    union(){
+      fan_container(
+      filter_z=filter_z,
+      z=grid_z,
+      top_left_corner_smoothed=false,
+      bottom_left_corner_smoothed=false,
+      bottom_right_corner_smoothed=false,
+      top_right_corner_smoothed=true,
+      edge_fan_top_smoothed=true,
+      edge_fan_bottom_smoothed=false,
+      edge_fan_right_smoothed=true,
+      edge_fan_left_smoothed=false,
+      edge_top_left_smoothed=false,
+      edge_top_right_smoothed=true,
+      edge_bottom_left_smoothed=false,
+      edge_bottom_right_smoothed=false,
+      top_screw_hole=true,
+      left_screw_hole=true,
+      bottom_screw_hole=true,
+      right_screw_hole=false,
+      long_wall="center",
+      left_wire_route_hole=true,
+      right_wire_route_hole=false,
+      top_wire_route_hole=false,
+      bottom_wire_route_hole=true
+      );
+      difference(){
+      edge_nub_cube("top",0, nub_len=10, nub_proj=get_depth(), nub_h=10);
+       top_screw_and_nut(length=get_length(), filter_z=(grid_z+filter_z-10));
+      };
+      edge_nub_cube("bottom",0, nub_len=10, nub_proj=get_depth(), nub_h=10);
+      edge_nub_cube("right",0, nub_len=10, nub_proj=get_depth(), nub_h=10);
+      edge_nub_cube("left",0, nub_len=10, nub_proj=get_depth(), nub_h=10);
+      }
+      //place_tabs("right",  get_width()-get_depth()*2, get_length()-get_depth()*2, get_depth(), grid_z, count=1);
+      //place_tabs("top",  get_width(), get_length()-get_depth()*2, get_depth(), grid_z, count=1);
+    };
+    bottom_labels(
+    width=get_width(),
+    length=get_length(),
+    bottom_z=filter_z+grid_z-get_depth()+.8,
+    part_code="TR",
+    top_T_size=10,
+    part_size=10,
+    edge_margin=get_depth()*1.5
+  );
 
-fan_container(
-  filter_z=filter_z,
-  z=grid_z,
-  top_left_corner_smoothed=false,
-  bottom_left_corner_smoothed=false,
-  bottom_right_corner_smoothed=false,
-  top_right_corner_smoothed=true,
-  edge_fan_top_smoothed=true,
-  edge_fan_bottom_smoothed=false,
-  edge_fan_right_smoothed=true,
-  edge_fan_left_smoothed=false,
-  edge_top_left_smoothed=false,
-  edge_top_right_smoothed=true,
-  edge_bottom_left_smoothed=false,
-  edge_bottom_right_smoothed=false,
-  top_screw_hole=false,
-  left_screw_hole=true,
-  bottom_screw_hole=true,
-  right_screw_hole=false,
-  long_wall="top-right"
-);
+
+
