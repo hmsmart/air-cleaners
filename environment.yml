@@ -1,0 +1,14 @@
+name: 3d-modeling
+
+dependencies:
+  - python=3.11
+  - numpy
+  - scipy
+  - toolz
+  - matplotlib
+  - seaborn
+  - jupyterlab
+  - cadquery
+  - pip
+  - pip:
+    - jupyter-cadquery
