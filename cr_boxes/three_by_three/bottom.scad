@@ -56,7 +56,7 @@ difference(){
           edge_screw_cut(edge="right", at=a, z_drill=z_drill, nub_proj=D);
         }
         //Tabs
-        place_tabs("bottom",  W, L-(D*2), D, grid_z, count=1);
+        place_tabs("bottom",  W, L-(D*2), D, filter_z, count=1);
      };
      bottom_labels(
         width=get_width(),
